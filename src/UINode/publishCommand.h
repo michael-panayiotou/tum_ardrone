@@ -1,3 +1,4 @@
+#pragma once
  /**
  *  This file is part of tum_ardrone.
  *
@@ -17,36 +18,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with tum_ardrone.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
- 
- 
- 
-#include "ControlNode.h"
-#include "ros/ros.h"
-#include "ros/package.h"
-#include "boost/thread.hpp"
-#include <signal.h>
-
-// this global var is used in getMS(ros::Time t) to convert to a consistent integer timestamp used internally pretty much everywhere.
-// kind of an artifact from Windows-Version, where only that was available / used.
-unsigned int ros_header_timestamp_base = 0;
+#ifndef __TUMARDRONEGUI_H
+#define __TUMARDRONEGUI_H
+class RosThread;
 
 
 
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "drone_autopilot");
-
-  ROS_INFO("Started TUM ArDrone Autopilot Node.");
-
-  ControlNode controlNode;
-
-  dynamic_reconfigure::Server<tum_ardrone::AutopilotParamsConfig> srv;
-  dynamic_reconfigure::Server<tum_ardrone::AutopilotParamsConfig>::CallbackType f;
-  f = boost::bind(&ControlNode::dynConfCb, &controlNode, _1, _2);
-  srv.setCallback(f);
-
-  controlNode.Loop();
-
-  return 0;
-}
+#endif /* __TUMARDRONEGUI_H */

@@ -152,6 +152,7 @@ public:
 	// ROS exclusive: called by external thread if a new image/navdata is received.
 	// takes care of sync etc.
 	void newImage(sensor_msgs::ImageConstPtr img);
+	void saveImage(sensor_msgs::ImageConstPtr img);
 	void newNavdata(ardrone_autonomy::Navdata* nav);
 	bool newImageAvailable;
 	void setPTAMPars(double minKFTimeDist, double minKFWiggleDist, double minKFDist);

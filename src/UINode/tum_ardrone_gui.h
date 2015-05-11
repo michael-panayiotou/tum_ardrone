@@ -84,6 +84,7 @@ signals:
 
 public:
     tum_ardrone_gui(QWidget *parent = 0);
+    tum_ardrone_gui(std::string val);
     ~tum_ardrone_gui();
     RosThread* rosThread;
     PingThread* pingThread;

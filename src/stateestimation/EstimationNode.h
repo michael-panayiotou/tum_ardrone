@@ -36,19 +36,26 @@
 #include <dynamic_reconfigure/server.h>
 #include "tum_ardrone/StateestimationParamsConfig.h"
 #include "TooN/se3.h"
-
+#include <image_transport/image_transport.h>
+ 
 
 class DroneKalmanFilter;
 class MapView;
 class PTAMWrapper;
 
+class sendCommand;
+
+
 struct EstimationNode
 {
 private:
 	// comm with drone
+
 	ros::Subscriber navdata_sub; // drone navdata
 	ros::Subscriber vel_sub; // to co-read contro commands sent from other thread
 	ros::Subscriber vid_sub;
+	//image_transport::Subscriber vid_sub2;
+	
 	ros::Time lastNavStamp;
 
 
@@ -63,7 +70,7 @@ private:
 	ros::Publisher dronepose_pub;
 
 	ros::NodeHandle nh_;
-
+	//image_transport::ImageTransport it(nh_);
 	tf::TransformBroadcaster tf_broadcaster;
 
 	// parameters
@@ -94,20 +101,24 @@ public:
 	// filter
 	DroneKalmanFilter* filter;
 	PTAMWrapper* ptamWrapper;
+	sendCommand* sendcommand;
+
 	MapView* mapView;
 	std::string packagePath;
 
 	EstimationNode();
 	~EstimationNode();
 
+	
 
 	// ROS message callbacks
 	void navdataCb(const ardrone_autonomy::NavdataConstPtr navdataPtr);
 	void velCb(const geometry_msgs::TwistConstPtr velPtr);
 	void vidCb(const sensor_msgs::ImageConstPtr img);
+	void vidCb2(const sensor_msgs::ImageConstPtr img);
 	void comCb(const std_msgs::StringConstPtr str);
 	void dynConfCb(tum_ardrone::StateestimationParamsConfig &config, uint32_t level);
-
+	void startImageCapture();
 	// main pose-estimation loop
 	void Loop();
 

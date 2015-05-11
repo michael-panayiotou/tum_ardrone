@@ -32,12 +32,19 @@
 #include "Predictor.h"
 #include "DroneKalmanFilter.h"
 #include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
 #include <sensor_msgs/image_encodings.h>
+
+#include <opencv2/opencv.hpp>
+#include <sensor_msgs/Image.h>
 #include "GLWindow2.h"
 #include "EstimationNode.h"
 #include <iostream>
 #include <fstream>
 #include <string>
+
+
+int epanalipsi=0;
 
 pthread_mutex_t PTAMWrapper::navInfoQueueCS = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t PTAMWrapper::shallowMapCS = PTHREAD_MUTEX_INITIALIZER;
@@ -899,14 +906,34 @@ void PTAMWrapper::newNavdata(ardrone_autonomy::Navdata* nav)
 	imuOnlyPred->yaw = filter->getCurrentPose()[5];
 	imuOnlyPred->predictOneStep(&lastNavinfoReceived);
 }
+void PTAMWrapper::saveImage(sensor_msgs::ImageConstPtr img){
+//Save the photo to desktop
+	
+	
+	
+	std::string filename = "/home/michael/Desktop/michael";
+	
+	filename=filename +".jpg";
+	
+	cv_bridge::CvImagePtr cv_ptr2 = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGRA8);
+	
+    cv::imwrite(filename,cv_ptr2->image);
+		
 
+	
+	
+
+
+}
 void PTAMWrapper::newImage(sensor_msgs::ImageConstPtr img)
 {
+	
+	
 
 	// convert to CVImage
-	cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::MONO8);
-
-
+    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::MONO8);
+ 	
+	
 	boost::unique_lock<boost::mutex> lock(new_frame_signal_mutex);
 
 	// copy to internal image, convert to bw, set flag.
@@ -1077,8 +1104,9 @@ void PTAMWrapper::on_mouse_down(CVD::ImageRef where, int state, int button)
 	node->publishCommand("c clearCommands");
 	node->publishCommand("c lockScaleFP");
 
-	if(button == 1)
+	if(button == 1){
 		snprintf(bf,100,"c moveByRel %.3f %.3f 0 0",x,y);
+		printf("\n\n Ball so hard:%d\n\n",where.x);}
 	else
 		snprintf(bf,100,"c moveByRel 0 0 %.3f %.3f",y,x*45);
 

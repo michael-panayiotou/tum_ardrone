@@ -41,8 +41,13 @@
 #include "MapView.h"
 #include <sys/stat.h>
 #include <string>
+#include <unistd.h>
+#include <image_transport/image_transport.h>
 
+#include "sendCommand.h"
+ 
 using namespace std;
+int testcount=0;
 
 pthread_mutex_t EstimationNode::logIMU_CS = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t EstimationNode::logPTAM_CS = PTHREAD_MUTEX_INITIALIZER;
@@ -80,9 +85,13 @@ EstimationNode::EstimationNode()
 		cout << "set calibFile to DEFAULT" << endl;
 
 
-	navdata_sub       = nh_.subscribe(navdata_channel, 10, &EstimationNode::navdataCb, this);
+		navdata_sub       = nh_.subscribe(navdata_channel, 10, &EstimationNode::navdataCb, this);
 	vel_sub          = nh_.subscribe(control_channel,10, &EstimationNode::velCb, this);
+	
 	vid_sub          = nh_.subscribe(video_channel,10, &EstimationNode::vidCb, this);
+	
+	
+
 
 	dronepose_pub	   = nh_.advertise<tum_ardrone::filter_state>(output_channel,1);
 
@@ -100,6 +109,7 @@ EstimationNode::EstimationNode()
 	lastNavStamp = ros::Time(0);
 	filter = new DroneKalmanFilter(this);
 	ptamWrapper = new PTAMWrapper(filter, this);
+	sendcommand = new sendCommand(this);
 	mapView = new MapView(filter, ptamWrapper, this);
 	arDroneVersion = 0;
 	//memset(&lastNavdataReceived,0,sizeof(ardrone_autonomy::Navdata));
@@ -113,6 +123,8 @@ EstimationNode::~EstimationNode()
 	delete mapView;
 	delete ptamWrapper;
 	delete filter;
+	//delete sendcommand;
+
 
 
 	//delete infoQueue;
@@ -215,6 +227,20 @@ void EstimationNode::vidCb(const sensor_msgs::ImageConstPtr img)
 {
 	// give to PTAM
 	ptamWrapper->newImage(img);
+	//ptamWrapper->saveImage(img);
+}
+
+
+// void EstimationNode::startImageCapture(){
+// vid_sub2= nh_.subscribe(video_channel,10, &EstimationNode::vidCb2, this);
+
+// }
+
+
+
+void EstimationNode::vidCb2(const sensor_msgs::ImageConstPtr img)
+{
+	ptamWrapper->saveImage(img);
 }
 
 void EstimationNode::comCb(const std_msgs::StringConstPtr str)
@@ -250,6 +276,7 @@ void EstimationNode::comCb(const std_msgs::StringConstPtr str)
 		predTime = ros::Duration((0.001*filter->delayControl));	// set predTime to new delayControl
 	}
 }
+pthread_mutex_t EstimationNode::tum_ardrone_CS = PTHREAD_MUTEX_INITIALIZER; //pthread_mutex_lock( &cs_mutex );
 
 
 void EstimationNode::Loop()
@@ -258,11 +285,21 @@ void EstimationNode::Loop()
 
 	  ros::Time lastInfoSent = ros::Time::now();
 
+	int count=0;
+	
+	
+
 	  while (nh_.ok())
 	  {
 		  // -------------- 1. put nav & control in internal queues. ---------------
 		  ros::spinOnce();
+		
+// 		if(count<1){
 
+//        sendcommand->publish();
+    
+// 		}
+// count=count+1;
 
 		  // -------------- 3. get predicted pose and publish! ---------------
 		  // get filter state msg
@@ -334,12 +371,12 @@ void EstimationNode::dynConfCb(tum_ardrone::StateestimationParamsConfig &config,
 
 }
 
-pthread_mutex_t EstimationNode::tum_ardrone_CS = PTHREAD_MUTEX_INITIALIZER; //pthread_mutex_lock( &cs_mutex );
 void EstimationNode::publishCommand(std::string c)
 {
 	std_msgs::String s;
 	s.data = c.c_str();
 	pthread_mutex_lock(&tum_ardrone_CS);
+	
 	tum_ardrone_pub.publish(s);
 	pthread_mutex_unlock(&tum_ardrone_CS);
 }
