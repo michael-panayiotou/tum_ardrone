@@ -13,7 +13,7 @@ cd ~/catkin_ws/src
 ```
 - Ακολούθως κάνουμε clone τον κώδικα από το repository του tum_ardrone στο catkin workspace :
 ``` bash
-git clone https://github.com/tum-vision/tum_ardrone.git -b hydro-devel
+git clone https://github.com/michael-panayiotou/tum_ardrone.git -b indigo-devel
 ```
 - Επιστρέφουμε στο catkin workspace.
 ``` bash
@@ -25,5 +25,5 @@ rosdep install tum_ardrone
 ```
 - Κάνουμε compile το πακέτο με την εντολή:
 ``` bash
-atkin_make
+catkin_make
 ```
